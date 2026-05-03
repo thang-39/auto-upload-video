@@ -1,0 +1,248 @@
+{
+  "name": "Notion → Download Facebook Video",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 20 * * *"
+            }
+          ]
+        }
+      },
+      "id": "node-schedule",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [200, 300]
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "operation": "getAll",
+        "databaseId": {
+          "__rl": true,
+          "value": "REPLACE_WITH_YOUR_DATABASE_ID",
+          "mode": "id"
+        },
+        "returnAll": true,
+        "filters": {
+          "conditions": [
+            {
+              "key": "Status|select",
+              "condition": "select_equals",
+              "selectValue": "Ready"
+            },
+            {
+              "key": "Public Date|date",
+              "condition": "date_equals",
+              "date": "={{ new Date().toISOString().split('T')[0] }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "node-get-videos",
+      "name": "Get Today's Videos",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [440, 300],
+      "credentials": {
+        "notionApi": {
+          "id": "REPLACE_WITH_CREDENTIAL_ID",
+          "name": "Notion account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "cond-has-items",
+              "leftValue": "={{ $items().length }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        }
+      },
+      "id": "node-has-videos",
+      "name": "Has Videos?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [660, 300]
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "operation": "update",
+        "pageId": {
+          "__rl": true,
+          "value": "={{ $json.id }}",
+          "mode": "id"
+        },
+        "propertiesUi": {
+          "propertyValues": [
+            {
+              "key": "Status|select",
+              "selectValue": "Downloading"
+            }
+          ]
+        }
+      },
+      "id": "node-mark-downloading",
+      "name": "Mark Downloading",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [880, 180],
+      "credentials": {
+        "notionApi": {
+          "id": "REPLACE_WITH_CREDENTIAL_ID",
+          "name": "Notion account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "command": "=yt-dlp --no-playlist --merge-output-format mp4 -o \"/home/node/downloads/{{ $('Get Today\\'s Videos').item.json.id }}_%(title)s.%(ext)s\" \"{{ $('Get Today\\'s Videos').item.json.properties['FB Link'].url }}\""
+      },
+      "id": "node-download",
+      "name": "Download Video",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [1100, 180],
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "cond-exit-code",
+              "leftValue": "={{ $json.exitCode }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        }
+      },
+      "id": "node-download-ok",
+      "name": "Download OK?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1320, 180]
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "operation": "update",
+        "pageId": {
+          "__rl": true,
+          "value": "={{ $('Get Today\\'s Videos').item.json.id }}",
+          "mode": "id"
+        },
+        "propertiesUi": {
+          "propertyValues": [
+            {
+              "key": "Status|select",
+              "selectValue": "Downloaded"
+            }
+          ]
+        }
+      },
+      "id": "node-mark-downloaded",
+      "name": "Mark Downloaded",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [1540, 80],
+      "credentials": {
+        "notionApi": {
+          "id": "REPLACE_WITH_CREDENTIAL_ID",
+          "name": "Notion account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "operation": "update",
+        "pageId": {
+          "__rl": true,
+          "value": "={{ $('Get Today\\'s Videos').item.json.id }}",
+          "mode": "id"
+        },
+        "propertiesUi": {
+          "propertyValues": [
+            {
+              "key": "Status|select",
+              "selectValue": "Error"
+            }
+          ]
+        }
+      },
+      "id": "node-mark-error",
+      "name": "Mark Error",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [1540, 300],
+      "credentials": {
+        "notionApi": {
+          "id": "REPLACE_WITH_CREDENTIAL_ID",
+          "name": "Notion account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Schedule Trigger": {
+      "main": [[{ "node": "Get Today's Videos", "type": "main", "index": 0 }]]
+    },
+    "Get Today's Videos": {
+      "main": [[{ "node": "Has Videos?", "type": "main", "index": 0 }]]
+    },
+    "Has Videos?": {
+      "main": [
+        [{ "node": "Mark Downloading", "type": "main", "index": 0 }],
+        []
+      ]
+    },
+    "Mark Downloading": {
+      "main": [[{ "node": "Download Video", "type": "main", "index": 0 }]]
+    },
+    "Download Video": {
+      "main": [[{ "node": "Download OK?", "type": "main", "index": 0 }]]
+    },
+    "Download OK?": {
+      "main": [
+        [{ "node": "Mark Downloaded", "type": "main", "index": 0 }],
+        [{ "node": "Mark Error", "type": "main", "index": 0 }]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": []
+}
