@@ -13,6 +13,7 @@ services:
       - N8N_PROTOCOL=http
       - NODE_ENV=production
       - WEBHOOK_URL=http://localhost:5678/
+      - NODES_EXCLUDE="[n8n-nodes-base.executeCommand]"
     volumes:
       - n8n_data:/home/node/.n8n
       - ./downloads:/home/node/downloads

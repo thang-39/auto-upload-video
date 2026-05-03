@@ -16,7 +16,10 @@
       "name": "Schedule Trigger",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.2,
-      "position": [200, 300]
+      "position": [
+        200,
+        300
+      ]
     },
     {
       "parameters": {
@@ -24,31 +27,30 @@
         "operation": "getAll",
         "databaseId": {
           "__rl": true,
-          "value": "REPLACE_WITH_YOUR_DATABASE_ID",
+          "value": "adf94e9d3b9b42728f114fb1ab554ab5",
           "mode": "id"
         },
-        "returnAll": true,
+        "returnAll": false,
+        "limit": 1,
         "filters": {
           "conditions": [
             {
               "key": "Status|select",
               "condition": "select_equals",
               "selectValue": "Ready"
-            },
-            {
-              "key": "Public Date|date",
-              "condition": "date_equals",
-              "date": "={{ new Date().toISOString().split('T')[0] }}"
             }
           ]
         },
         "options": {}
       },
       "id": "node-get-videos",
-      "name": "Get Today's Videos",
+      "name": "Get Next Ready Video",
       "type": "n8n-nodes-base.notion",
       "typeVersion": 2.2,
-      "position": [440, 300],
+      "position": [
+        440,
+        300
+      ],
       "credentials": {
         "notionApi": {
           "id": "REPLACE_WITH_CREDENTIAL_ID",
@@ -82,7 +84,10 @@
       "name": "Has Videos?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
-      "position": [660, 300]
+      "position": [
+        660,
+        300
+      ]
     },
     {
       "parameters": {
@@ -106,7 +111,10 @@
       "name": "Mark Downloading",
       "type": "n8n-nodes-base.notion",
       "typeVersion": 2.2,
-      "position": [880, 180],
+      "position": [
+        880,
+        180
+      ],
       "credentials": {
         "notionApi": {
           "id": "REPLACE_WITH_CREDENTIAL_ID",
@@ -116,13 +124,16 @@
     },
     {
       "parameters": {
-        "command": "=yt-dlp --no-playlist --merge-output-format mp4 -o \"/home/node/downloads/{{ $('Get Today\\'s Videos').item.json.id }}_%(title)s.%(ext)s\" \"{{ $('Get Today\\'s Videos').item.json.properties['FB Link'].url }}\""
+        "command": "=yt-dlp --no-playlist --merge-output-format mp4 -o \"/home/node/downloads/{{ $('Get Next Ready Video').item.json.id }}_%(title)s.%(ext)s\" \"{{ $('Get Next Ready Video').item.json.properties['FB Link'].url }}\""
       },
       "id": "node-download",
       "name": "Download Video",
       "type": "n8n-nodes-base.executeCommand",
       "typeVersion": 1,
-      "position": [1100, 180],
+      "position": [
+        1100,
+        180
+      ],
       "onError": "continueErrorOutput"
     },
     {
@@ -151,7 +162,10 @@
       "name": "Download OK?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
-      "position": [1320, 180]
+      "position": [
+        1320,
+        180
+      ]
     },
     {
       "parameters": {
@@ -159,7 +173,7 @@
         "operation": "update",
         "pageId": {
           "__rl": true,
-          "value": "={{ $('Get Today\\'s Videos').item.json.id }}",
+          "value": "={{ $('Get Next Ready Video').item.json.id }}",
           "mode": "id"
         },
         "propertiesUi": {
@@ -175,7 +189,10 @@
       "name": "Mark Downloaded",
       "type": "n8n-nodes-base.notion",
       "typeVersion": 2.2,
-      "position": [1540, 80],
+      "position": [
+        1540,
+        80
+      ],
       "credentials": {
         "notionApi": {
           "id": "REPLACE_WITH_CREDENTIAL_ID",
@@ -189,7 +206,7 @@
         "operation": "update",
         "pageId": {
           "__rl": true,
-          "value": "={{ $('Get Today\\'s Videos').item.json.id }}",
+          "value": "={{ $('Get Next Ready Video').item.json.id }}",
           "mode": "id"
         },
         "propertiesUi": {
@@ -205,7 +222,10 @@
       "name": "Mark Error",
       "type": "n8n-nodes-base.notion",
       "typeVersion": 2.2,
-      "position": [1540, 300],
+      "position": [
+        1540,
+        300
+      ],
       "credentials": {
         "notionApi": {
           "id": "REPLACE_WITH_CREDENTIAL_ID",
@@ -216,27 +236,77 @@
   ],
   "connections": {
     "Schedule Trigger": {
-      "main": [[{ "node": "Get Today's Videos", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Get Next Ready Video",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
-    "Get Today's Videos": {
-      "main": [[{ "node": "Has Videos?", "type": "main", "index": 0 }]]
+    "Get Next Ready Video": {
+      "main": [
+        [
+          {
+            "node": "Has Videos?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Has Videos?": {
       "main": [
-        [{ "node": "Mark Downloading", "type": "main", "index": 0 }],
+        [
+          {
+            "node": "Mark Downloading",
+            "type": "main",
+            "index": 0
+          }
+        ],
         []
       ]
     },
     "Mark Downloading": {
-      "main": [[{ "node": "Download Video", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Download Video",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Download Video": {
-      "main": [[{ "node": "Download OK?", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Download OK?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Download OK?": {
       "main": [
-        [{ "node": "Mark Downloaded", "type": "main", "index": 0 }],
-        [{ "node": "Mark Error", "type": "main", "index": 0 }]
+        [
+          {
+            "node": "Mark Downloaded",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Mark Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     }
   },
