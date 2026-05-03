@@ -289,7 +289,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ snippet: { title: ($('Get Next Ready Video').item.json.Name ?? 'Video Upload'), description: ($('Get Next Ready Video').item.json['FB Link'] ?? ''), categoryId: '22' }, status: { privacyStatus: 'private' } }) }}",
+        "jsonBody": "={{ JSON.stringify({ snippet: { title: ($('Get Next Ready Video').item.json.property_title || 'Video Upload').replace(/^\\d+\\.\\s*/, ''), description: ($('Get Next Ready Video').item.json.property_fb_link || ''), categoryId: '22' }, status: { privacyStatus: 'private' } }) }}",
         "options": {
           "response": {
             "response": {
