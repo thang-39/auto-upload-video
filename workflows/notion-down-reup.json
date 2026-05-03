@@ -196,7 +196,7 @@
       "type": "n8n-nodes-base.notion",
       "typeVersion": 2.2,
       "position": [
-        0,
+        896,
         0
       ],
       "credentials": {
@@ -230,13 +230,134 @@
       "type": "n8n-nodes-base.notion",
       "typeVersion": 2.2,
       "position": [
-        0,
+        896,
         224
       ],
       "credentials": {
         "notionApi": {
           "id": "dBiGOpzMDIltmRPH",
           "name": "Notion account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "command": "=ls -t /home/node/downloads/{{ $('Get Next Ready Video').item.json.id }}_*.mp4 2>/dev/null | head -1"
+      },
+      "id": "d1e2f3a4-b5c6-7890-defa-bc1234567890",
+      "name": "Find Downloaded File",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "read",
+        "fileSelector": "={{ $json.stdout.trim() }}",
+        "options": {}
+      },
+      "id": "e2f3a4b5-c6d7-8901-efab-cd2345678901",
+      "name": "Read Video File",
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        224,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://www.googleapis.com/upload/youtube/v3/videos?uploadType=resumable&part=snippet,status",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "youTubeOAuth2Api",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json; charset=UTF-8"
+            },
+            {
+              "name": "X-Upload-Content-Type",
+              "value": "video/mp4"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ snippet: { title: ($('Get Next Ready Video').item.json.Name ?? 'Video Upload'), description: ($('Get Next Ready Video').item.json['FB Link'] ?? ''), categoryId: '22' }, status: { privacyStatus: 'private' } }) }}",
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true
+            }
+          }
+        }
+      },
+      "id": "f3a4b5c6-d7e8-9012-fabc-de3456789012",
+      "name": "Initiate YouTube Upload",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        448,
+        0
+      ],
+      "credentials": {
+        "youTubeOAuth2Api": {
+          "id": "JAVzkxzAF7Kzbs2k",
+          "name": "YouTube account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Re-attach the binary video data lost after the Initiate step\nconst uploadUrl = $input.item.json.headers.location;\nconst binary = $('Read Video File').item.binary;\n\nreturn [{ json: { uploadUrl }, binary }];"
+      },
+      "id": "b5c6d7e8-f9a0-1234-bcde-f56789012345",
+      "name": "Prepare Upload Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        672,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "PUT",
+        "url": "={{ $json.uploadUrl }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "youTubeOAuth2Api",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "video/mp4"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "binaryData",
+        "inputDataFieldName": "data",
+        "options": {}
+      },
+      "id": "a4b5c6d7-e8f9-0123-abcd-ef4567890123",
+      "name": "Upload Video to YouTube",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        896,
+        0
+      ],
+      "credentials": {
+        "youTubeOAuth2Api": {
+          "id": "JAVzkxzAF7Kzbs2k",
+          "name": "YouTube account"
         }
       }
     }
@@ -280,7 +401,7 @@
       "main": [
         [
           {
-            "node": "Mark Downloaded",
+            "node": "Find Downloaded File",
             "type": "main",
             "index": 0
           }
@@ -288,6 +409,61 @@
         [
           {
             "node": "Mark Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find Downloaded File": {
+      "main": [
+        [
+          {
+            "node": "Read Video File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Video File": {
+      "main": [
+        [
+          {
+            "node": "Initiate YouTube Upload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Initiate YouTube Upload": {
+      "main": [
+        [
+          {
+            "node": "Prepare Upload Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Upload Data": {
+      "main": [
+        [
+          {
+            "node": "Upload Video to YouTube",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload Video to YouTube": {
+      "main": [
+        [
+          {
+            "node": "Mark Downloaded",
             "type": "main",
             "index": 0
           }
