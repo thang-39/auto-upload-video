@@ -12,13 +12,13 @@
           ]
         }
       },
-      "id": "node-schedule",
+      "id": "ae0c6ac8-fc0f-4adc-a06d-838ccba04bb6",
       "name": "Schedule Trigger",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.2,
       "position": [
-        200,
-        300
+        -1344,
+        224
       ]
     },
     {
@@ -30,30 +30,30 @@
           "value": "adf94e9d3b9b42728f114fb1ab554ab5",
           "mode": "id"
         },
-        "returnAll": false,
-        "limit": 1,
+        "filterType": "manual",
         "filters": {
           "conditions": [
             {
-              "key": "Status|select",
-              "condition": "select_equals",
-              "selectValue": "Ready"
+              "key": "Status|status",
+              "condition": "equals",
+              "statusValue": "Ready"
             }
           ]
         },
+        "limit": 1,
         "options": {}
       },
-      "id": "node-get-videos",
+      "id": "5d78cd79-1adf-4e15-a21c-2f14e20465e0",
       "name": "Get Next Ready Video",
       "type": "n8n-nodes-base.notion",
       "typeVersion": 2.2,
       "position": [
-        440,
-        300
+        -1104,
+        224
       ],
       "credentials": {
         "notionApi": {
-          "id": "REPLACE_WITH_CREDENTIAL_ID",
+          "id": "dBiGOpzMDIltmRPH",
           "name": "Notion account"
         }
       }
@@ -64,7 +64,8 @@
           "options": {
             "caseSensitive": true,
             "leftValue": "",
-            "typeValidation": "strict"
+            "typeValidation": "strict",
+            "version": 1
           },
           "conditions": [
             {
@@ -78,15 +79,16 @@
             }
           ],
           "combinator": "and"
-        }
+        },
+        "options": {}
       },
-      "id": "node-has-videos",
+      "id": "95b36cee-47de-40c5-b842-d8c21927f278",
       "name": "Has Videos?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
       "position": [
-        660,
-        300
+        -880,
+        224
       ]
     },
     {
@@ -101,38 +103,39 @@
         "propertiesUi": {
           "propertyValues": [
             {
-              "key": "Status|select",
-              "selectValue": "Downloading"
+              "key": "Status|status",
+              "statusValue": "Downloading"
             }
           ]
-        }
+        },
+        "options": {}
       },
-      "id": "node-mark-downloading",
+      "id": "6aeaa3e8-ed58-426a-9105-bcb211e4ae79",
       "name": "Mark Downloading",
       "type": "n8n-nodes-base.notion",
       "typeVersion": 2.2,
       "position": [
-        880,
-        180
+        -656,
+        112
       ],
       "credentials": {
         "notionApi": {
-          "id": "REPLACE_WITH_CREDENTIAL_ID",
+          "id": "dBiGOpzMDIltmRPH",
           "name": "Notion account"
         }
       }
     },
     {
       "parameters": {
-        "command": "=yt-dlp --no-playlist --merge-output-format mp4 -o \"/home/node/downloads/{{ $('Get Next Ready Video').item.json.id }}_%(title)s.%(ext)s\" \"{{ $('Get Next Ready Video').item.json.properties['FB Link'].url }}\""
+        "command": "=yt-dlp --no-playlist --merge-output-format mp4 -o \"/home/node/downloads/{{ $('Get Next Ready Video').item.json.id }}_%(title)s.%(ext)s\" \"{{ $('Get Next Ready Video').item.json.property_fb_link }}\""
       },
-      "id": "node-download",
+      "id": "9a228dd8-51ac-412a-95ef-bd87c67c6fe3",
       "name": "Download Video",
       "type": "n8n-nodes-base.executeCommand",
       "typeVersion": 1,
       "position": [
-        1100,
-        180
+        -448,
+        112
       ],
       "onError": "continueErrorOutput"
     },
@@ -142,7 +145,8 @@
           "options": {
             "caseSensitive": true,
             "leftValue": "",
-            "typeValidation": "strict"
+            "typeValidation": "strict",
+            "version": 1
           },
           "conditions": [
             {
@@ -156,15 +160,16 @@
             }
           ],
           "combinator": "and"
-        }
+        },
+        "options": {}
       },
-      "id": "node-download-ok",
+      "id": "ef28e22f-0f17-491e-9bc9-c0442ef7b075",
       "name": "Download OK?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
       "position": [
-        1320,
-        180
+        -224,
+        112
       ]
     },
     {
@@ -179,23 +184,24 @@
         "propertiesUi": {
           "propertyValues": [
             {
-              "key": "Status|select",
-              "selectValue": "Downloaded"
+              "key": "Status|status",
+              "statusValue": "Completed"
             }
           ]
-        }
+        },
+        "options": {}
       },
-      "id": "node-mark-downloaded",
+      "id": "f8059fe6-4a8e-411c-8805-3770084ee274",
       "name": "Mark Downloaded",
       "type": "n8n-nodes-base.notion",
       "typeVersion": 2.2,
       "position": [
-        1540,
-        80
+        0,
+        0
       ],
       "credentials": {
         "notionApi": {
-          "id": "REPLACE_WITH_CREDENTIAL_ID",
+          "id": "dBiGOpzMDIltmRPH",
           "name": "Notion account"
         }
       }
@@ -212,28 +218,30 @@
         "propertiesUi": {
           "propertyValues": [
             {
-              "key": "Status|select",
-              "selectValue": "Error"
+              "key": "Status|status",
+              "statusValue": "Error"
             }
           ]
-        }
+        },
+        "options": {}
       },
-      "id": "node-mark-error",
+      "id": "95726d35-cac8-4685-bb65-2f81abaa82b2",
       "name": "Mark Error",
       "type": "n8n-nodes-base.notion",
       "typeVersion": 2.2,
       "position": [
-        1540,
-        300
+        0,
+        224
       ],
       "credentials": {
         "notionApi": {
-          "id": "REPLACE_WITH_CREDENTIAL_ID",
+          "id": "dBiGOpzMDIltmRPH",
           "name": "Notion account"
         }
       }
     }
   ],
+  "pinData": {},
   "connections": {
     "Schedule Trigger": {
       "main": [
@@ -265,8 +273,25 @@
             "type": "main",
             "index": 0
           }
+        ]
+      ]
+    },
+    "Download OK?": {
+      "main": [
+        [
+          {
+            "node": "Mark Downloaded",
+            "type": "main",
+            "index": 0
+          }
         ],
-        []
+        [
+          {
+            "node": "Mark Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     },
     "Mark Downloading": {
@@ -288,21 +313,10 @@
             "type": "main",
             "index": 0
           }
-        ]
-      ]
-    },
-    "Download OK?": {
-      "main": [
-        [
-          {
-            "node": "Mark Downloaded",
-            "type": "main",
-            "index": 0
-          }
         ],
         [
           {
-            "node": "Mark Error",
+            "node": "Download OK?",
             "type": "main",
             "index": 0
           }
@@ -312,7 +326,14 @@
   },
   "active": false,
   "settings": {
-    "executionOrder": "v1"
+    "executionOrder": "v1",
+    "binaryMode": "separate"
   },
+  "versionId": "b0dc237d-e65a-42c4-8bf8-7a7ad7560401",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "45251748fab1da9e6b0d4fbf7a052ce6c2f2d0ec659d855cc85232a3f4151a16"
+  },
+  "id": "lOF7ILbnsQ7p7lK3",
   "tags": []
 }
