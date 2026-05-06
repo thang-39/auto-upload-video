@@ -8,17 +8,18 @@ services:
     ports:
       - "5678:5678"
     environment:
-      - N8N_HOST=100.112.152.77
+      - N8N_HOST=k8s-worker1.mining-theropod.ts.net
       - N8N_PORT=5678
-      - N8N_PROTOCOL=http
-      - NODE_ENV=production
-      - WEBHOOK_URL=[http://100.112.152.77:5678/](http://100.112.152.77:5678/)
-      - N8N_SECURE_COOKIE=false
-      - NODES_EXCLUDE=["n8n-nodes-base.executeCommand"]
+      - N8N_PROTOCOL=https
+      - WEBHOOK_URL=https://k8s-worker1.mining-theropod.ts.net:5678/
+      - N8N_SSL_CERT=/certs/cert.crt
+      - N8N_SSL_KEY=/certs/cert.key
+      - N8N_SECURE_COOKIE=true
+      - NODES_EXCLUDE="[n8n-nodes-base.executeCommand]"
       - N8N_RESTRICT_FILE_ACCESS_TO=/home/node/downloads
     volumes:
       - n8n_data:/home/node/.n8n
       - ./downloads:/home/node/downloads
-
+      - ./certs:/certs:ro
 volumes:
   n8n_data:

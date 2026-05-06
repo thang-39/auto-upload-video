@@ -1,1 +1,5 @@
 downloads/
+certs/
+*.key
+*.pem
+*.crt
