@@ -17,12 +17,21 @@ RUN curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp \
     -o /usr/local/bin/yt-dlp && chmod a+rx /usr/local/bin/yt-dlp
 
 # 2. Download ffmpeg static binary (John Van Sickle builds)
-RUN curl -L https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz -o /tmp/ffmpeg.tar.xz \
-    && tar -xJf /tmp/ffmpeg.tar.xz -C /tmp \
-    && mv /tmp/ffmpeg-*-amd64-static/ffmpeg /usr/local/bin/ffmpeg \
-    && mv /tmp/ffmpeg-*-amd64-static/ffprobe /usr/local/bin/ffprobe \
-    && chmod a+rx /usr/local/bin/ffmpeg /usr/local/bin/ffprobe
-
+# 2. Download ffmpeg static binary (Architecture Aware for Armbian/TV Boxes)
+RUN ARCH=$(uname -m) && \
+    if [ "$ARCH" = "aarch64" ] || [ "$ARCH" = "arm64" ]; then \
+        DL_URL="https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-arm64-static.tar.xz"; \
+    elif [ "$ARCH" = "armv7l" ] || [ "$ARCH" = "armhf" ] || [ "$ARCH" = "armv8l" ]; then \
+        DL_URL="https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-armhf-static.tar.xz"; \
+    else \
+        DL_URL="https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz"; \
+    fi && \
+    echo "Downloading ffmpeg for $ARCH from $DL_URL" && \
+    curl -L $DL_URL -o /tmp/ffmpeg.tar.xz && \
+    tar -xJf /tmp/ffmpeg.tar.xz -C /tmp && \
+    mv /tmp/ffmpeg-*-static/ffmpeg /usr/local/bin/ffmpeg && \
+    mv /tmp/ffmpeg-*-static/ffprobe /usr/local/bin/ffprobe && \
+    chmod a+rx /usr/local/bin/ffmpeg /usr/local/bin/ffprobe
 # STAGE 2: Official n8n image (The hardened one)
 FROM n8nio/n8n:latest
 
