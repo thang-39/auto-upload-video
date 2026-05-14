@@ -15,8 +15,8 @@ An n8n workflow that automatically checks a Notion database daily, downloads the
 
 ### Phase 2: Platform Integration (API Setup)
 4. As a user, I want to create a Notion Integration and a specific database template (Title, FB Link, Public Date, Status), so that the workflow has a structured source of truth.
-5. As a developer, I want to configure Google Cloud OAuth2 credentials for YouTube, so that the workflow can securely upload videos to YouTube Shorts.
-6. As a developer, I want to set up TikTok Developer API access, so that the workflow can use the Direct Post API for automated TikTok uploads.
+5. As a developer, I want to configure Google Cloud OAuth2 credentials for YouTube, so that the workflow can securely upload videos to YouTube Shorts. ✅
+6. As a developer, I want to set up TikTok Developer API access, so that the workflow can use the Direct Post API for automated TikTok uploads. (Workflow nodes added 🚧)
 7. As a developer, I want to configure Meta Graph API credentials, so that the workflow can post to Facebook Reels and Instagram Reels simultaneously.
 
 ### Phase 3: n8n Workflow Logic

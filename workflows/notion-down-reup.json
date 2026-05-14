@@ -196,7 +196,7 @@
       "type": "n8n-nodes-base.notion",
       "typeVersion": 2.2,
       "position": [
-        896,
+        1792,
         0
       ],
       "credentials": {
@@ -230,7 +230,7 @@
       "type": "n8n-nodes-base.notion",
       "typeVersion": 2.2,
       "position": [
-        896,
+        1792,
         224
       ],
       "credentials": {
@@ -306,6 +306,7 @@
         448,
         0
       ],
+      "onError": "continueErrorOutput",
       "credentials": {
         "youTubeOAuth2Api": {
           "id": "JAVzkxzAF7Kzbs2k",
@@ -318,7 +319,7 @@
         "jsCode": "// Re-attach the binary video data lost after the Initiate step\nconst uploadUrl = $input.item.json.headers.location;\nconst binary = $('Read Video File').item.binary;\n\nreturn [{ json: { uploadUrl }, binary }];"
       },
       "id": "b5c6d7e8-f9a0-1234-bcde-f56789012345",
-      "name": "Prepare Upload Data",
+      "name": "Prepare YouTube Upload Data",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
@@ -354,12 +355,94 @@
         896,
         0
       ],
+      "onError": "continueErrorOutput",
       "credentials": {
         "youTubeOAuth2Api": {
           "id": "JAVzkxzAF7Kzbs2k",
           "name": "YouTube account"
         }
       }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://open.tiktokapis.com/v2/post/publish/video/init/",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "tikTokOAuth2Api",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json; charset=UTF-8"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({\n  post_info: {\n    title: ($('Get Next Ready Video').item.json.property_title || 'Video Upload').replace(/^\\d+\\.\\s*/, ''),\n    privacy_level: 'PUBLIC_TO_EVERYONE'\n  },\n  source_info: {\n    source: 'FILE_UPLOAD',\n    video_size: $('Read Video File').item.binary.data.fileSize\n  }\n}) }}",
+        "options": {}
+      },
+      "id": "tiktok-init",
+      "name": "Initiate TikTok Upload",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1120,
+        0
+      ],
+      "onError": "continueErrorOutput",
+      "credentials": {
+        "tikTokOAuth2Api": {
+          "id": "REPLACE_WITH_TIKTOK_CRED_ID",
+          "name": "TikTok account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Re-attach the binary video data and extract TikTok upload URL\nconst uploadUrl = $input.item.json.data.upload_url;\nconst publishId = $input.item.json.data.publish_id;\nconst binary = $('Read Video File').item.binary;\nconst fileSize = binary.data.fileSize;\n\nreturn [{ json: { uploadUrl, publishId, fileSize }, binary }];"
+      },
+      "id": "tiktok-prepare",
+      "name": "Prepare TikTok Upload Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1344,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "PUT",
+        "url": "={{ $json.uploadUrl }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "video/mp4"
+            },
+            {
+              "name": "Content-Range",
+              "value": "=bytes 0-{{ $json.fileSize - 1 }}/{{ $json.fileSize }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "binaryData",
+        "inputDataFieldName": "data",
+        "options": {}
+      },
+      "id": "tiktok-upload",
+      "name": "Upload Video to TikTok",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1568,
+        0
+      ],
+      "onError": "continueErrorOutput"
     }
   ],
   "pinData": {},
@@ -441,14 +524,21 @@
       "main": [
         [
           {
-            "node": "Prepare Upload Data",
+            "node": "Prepare YouTube Upload Data",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Mark Error",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Prepare Upload Data": {
+    "Prepare YouTube Upload Data": {
       "main": [
         [
           {
@@ -463,7 +553,61 @@
       "main": [
         [
           {
+            "node": "Initiate TikTok Upload",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Mark Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Initiate TikTok Upload": {
+      "main": [
+        [
+          {
+            "node": "Prepare TikTok Upload Data",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Mark Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare TikTok Upload Data": {
+      "main": [
+        [
+          {
+            "node": "Upload Video to TikTok",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload Video to TikTok": {
+      "main": [
+        [
+          {
             "node": "Mark Downloaded",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Mark Error",
             "type": "main",
             "index": 0
           }
