@@ -12,7 +12,7 @@
           ]
         }
       },
-      "id": "ae0c6ac8-fc0f-4adc-a06d-838ccba04bb6",
+      "id": "94c0a5cf-cdc1-457e-9896-03accd741b39",
       "name": "Schedule Trigger",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.2,
@@ -30,20 +30,20 @@
           "value": "adf94e9d3b9b42728f114fb1ab554ab5",
           "mode": "id"
         },
+        "limit": 1,
         "filterType": "manual",
         "filters": {
           "conditions": [
             {
-              "key": "Status|status",
+              "key": "YT_Status|status",
               "condition": "equals",
               "statusValue": "Ready"
             }
           ]
         },
-        "limit": 1,
         "options": {}
       },
-      "id": "5d78cd79-1adf-4e15-a21c-2f14e20465e0",
+      "id": "fd092439-8491-44ba-875a-41a6a27acb30",
       "name": "Get Next Ready Video",
       "type": "n8n-nodes-base.notion",
       "typeVersion": 2.2,
@@ -53,7 +53,7 @@
       ],
       "credentials": {
         "notionApi": {
-          "id": "dBiGOpzMDIltmRPH",
+          "id": "1x21QAoszbkHoHWL",
           "name": "Notion account"
         }
       }
@@ -82,7 +82,7 @@
         },
         "options": {}
       },
-      "id": "95b36cee-47de-40c5-b842-d8c21927f278",
+      "id": "a73ff16d-4311-4f78-a202-b077d1599fa0",
       "name": "Has Videos?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
@@ -103,14 +103,14 @@
         "propertiesUi": {
           "propertyValues": [
             {
-              "key": "Status|status",
+              "key": "YT_Status|status",
               "statusValue": "Downloading"
             }
           ]
         },
         "options": {}
       },
-      "id": "6aeaa3e8-ed58-426a-9105-bcb211e4ae79",
+      "id": "4e2b66d3-76d1-497c-8b64-f90b04fadec7",
       "name": "Mark Downloading",
       "type": "n8n-nodes-base.notion",
       "typeVersion": 2.2,
@@ -120,16 +120,16 @@
       ],
       "credentials": {
         "notionApi": {
-          "id": "dBiGOpzMDIltmRPH",
+          "id": "1x21QAoszbkHoHWL",
           "name": "Notion account"
         }
       }
     },
     {
       "parameters": {
-        "command": "=yt-dlp --no-playlist --merge-output-format mp4 -o \"/home/node/downloads/{{ $('Get Next Ready Video').item.json.id }}_%(title)s.%(ext)s\" \"{{ $('Get Next Ready Video').item.json.property_fb_link }}\""
+        "command": "=yt-dlp --no-playlist --merge-output-format mp4 -o \"/home/node/downloads/{{ $('Get Next Ready Video').item.json.id }}_{{ $('Get Next Ready Video').item.json.property_title }}.%(ext)s\" \"{{ $('Get Next Ready Video').item.json.property_fb_link }}\""
       },
-      "id": "9a228dd8-51ac-412a-95ef-bd87c67c6fe3",
+      "id": "d09d31c9-5d8b-48a7-a249-5ca4baee3f7c",
       "name": "Download Video",
       "type": "n8n-nodes-base.executeCommand",
       "typeVersion": 1,
@@ -163,7 +163,7 @@
         },
         "options": {}
       },
-      "id": "ef28e22f-0f17-491e-9bc9-c0442ef7b075",
+      "id": "83ddc9d4-1185-451a-b63f-94b6c6134706",
       "name": "Download OK?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
@@ -184,27 +184,40 @@
         "propertiesUi": {
           "propertyValues": [
             {
-              "key": "Status|status",
+              "key": "YT_Status|status",
               "statusValue": "Completed"
             }
           ]
         },
         "options": {}
       },
-      "id": "f8059fe6-4a8e-411c-8805-3770084ee274",
+      "id": "e103dd93-7029-4c10-9165-f62202f8d8e9",
       "name": "Mark Downloaded",
       "type": "n8n-nodes-base.notion",
       "typeVersion": 2.2,
       "position": [
-        1792,
+        1344,
         0
       ],
       "credentials": {
         "notionApi": {
-          "id": "dBiGOpzMDIltmRPH",
+          "id": "1x21QAoszbkHoHWL",
           "name": "Notion account"
         }
       }
+    },
+    {
+      "parameters": {
+        "command": "=rm \"{{ $('Find Downloaded File').item.json.stdout.trim() }}\""
+      },
+      "id": "e4b6d3a1-7c9e-4b8a-9d2f-1a2b3c4d5e6f",
+      "name": "Delete Video File",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        1120,
+        0
+      ]
     },
     {
       "parameters": {
@@ -218,24 +231,24 @@
         "propertiesUi": {
           "propertyValues": [
             {
-              "key": "Status|status",
+              "key": "YT_Status|status",
               "statusValue": "Error"
             }
           ]
         },
         "options": {}
       },
-      "id": "95726d35-cac8-4685-bb65-2f81abaa82b2",
+      "id": "465856d9-de09-4567-a815-9f9eb1e275cf",
       "name": "Mark Error",
       "type": "n8n-nodes-base.notion",
       "typeVersion": 2.2,
       "position": [
-        1792,
+        896,
         224
       ],
       "credentials": {
         "notionApi": {
-          "id": "dBiGOpzMDIltmRPH",
+          "id": "1x21QAoszbkHoHWL",
           "name": "Notion account"
         }
       }
@@ -244,7 +257,7 @@
       "parameters": {
         "command": "=ls -t /home/node/downloads/{{ $('Get Next Ready Video').item.json.id }}_*.mp4 2>/dev/null | head -1"
       },
-      "id": "d1e2f3a4-b5c6-7890-defa-bc1234567890",
+      "id": "76bb9acc-834e-454e-8b58-a87ab626eb91",
       "name": "Find Downloaded File",
       "type": "n8n-nodes-base.executeCommand",
       "typeVersion": 1,
@@ -255,11 +268,10 @@
     },
     {
       "parameters": {
-        "operation": "read",
         "fileSelector": "={{ $json.stdout.trim() }}",
         "options": {}
       },
-      "id": "e2f3a4b5-c6d7-8901-efab-cd2345678901",
+      "id": "7f9c7ec6-95f2-4b01-92df-e943462ca7ee",
       "name": "Read Video File",
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1,
@@ -289,7 +301,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ snippet: { title: ($('Get Next Ready Video').item.json.property_title || 'Video Upload').replace(/^\\d+\\.\\s*/, ''), description: ($('Get Next Ready Video').item.json.property_fb_link || ''), categoryId: '22' }, status: { privacyStatus: 'public' } }) }}",
+        "jsonBody": "={{ JSON.stringify({ snippet: { title: ($('Get Next Ready Video').item.json.property_title || 'Video Upload').replace(/^\\d+\\.\\s*/, ''), description: ($('Get Next Ready Video').item.json.property_title || ''), categoryId: '22' }, status: { privacyStatus: 'public' } }) }}",
         "options": {
           "response": {
             "response": {
@@ -298,7 +310,7 @@
           }
         }
       },
-      "id": "f3a4b5c6-d7e8-9012-fabc-de3456789012",
+      "id": "cf23bcdf-3739-4cc4-b0b9-4dd25dad35da",
       "name": "Initiate YouTube Upload",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -306,10 +318,9 @@
         448,
         0
       ],
-      "onError": "continueErrorOutput",
       "credentials": {
         "youTubeOAuth2Api": {
-          "id": "JAVzkxzAF7Kzbs2k",
+          "id": "qsMDi7cfEntWrGk1",
           "name": "YouTube account"
         }
       }
@@ -318,8 +329,8 @@
       "parameters": {
         "jsCode": "// Re-attach the binary video data lost after the Initiate step\nconst uploadUrl = $input.item.json.headers.location;\nconst binary = $('Read Video File').item.binary;\n\nreturn [{ json: { uploadUrl }, binary }];"
       },
-      "id": "b5c6d7e8-f9a0-1234-bcde-f56789012345",
-      "name": "Prepare YouTube Upload Data",
+      "id": "7f7a69e9-2694-49e1-9c9c-2159804399f3",
+      "name": "Prepare Upload Data",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
@@ -347,7 +358,7 @@
         "inputDataFieldName": "data",
         "options": {}
       },
-      "id": "a4b5c6d7-e8f9-0123-abcd-ef4567890123",
+      "id": "89f970ba-c114-4c30-81b5-631341be6286",
       "name": "Upload Video to YouTube",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -355,94 +366,12 @@
         896,
         0
       ],
-      "onError": "continueErrorOutput",
       "credentials": {
         "youTubeOAuth2Api": {
-          "id": "JAVzkxzAF7Kzbs2k",
+          "id": "qsMDi7cfEntWrGk1",
           "name": "YouTube account"
         }
       }
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "https://open.tiktokapis.com/v2/post/publish/video/init/",
-        "authentication": "predefinedCredentialType",
-        "nodeCredentialType": "tikTokOAuth2Api",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "Content-Type",
-              "value": "application/json; charset=UTF-8"
-            }
-          ]
-        },
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({\n  post_info: {\n    title: ($('Get Next Ready Video').item.json.property_title || 'Video Upload').replace(/^\\d+\\.\\s*/, ''),\n    privacy_level: 'PUBLIC_TO_EVERYONE'\n  },\n  source_info: {\n    source: 'FILE_UPLOAD',\n    video_size: $('Read Video File').item.binary.data.fileSize\n  }\n}) }}",
-        "options": {}
-      },
-      "id": "tiktok-init",
-      "name": "Initiate TikTok Upload",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [
-        1120,
-        0
-      ],
-      "onError": "continueErrorOutput",
-      "credentials": {
-        "tikTokOAuth2Api": {
-          "id": "REPLACE_WITH_TIKTOK_CRED_ID",
-          "name": "TikTok account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "jsCode": "// Re-attach the binary video data and extract TikTok upload URL\nconst uploadUrl = $input.item.json.data.upload_url;\nconst publishId = $input.item.json.data.publish_id;\nconst binary = $('Read Video File').item.binary;\nconst fileSize = binary.data.fileSize;\n\nreturn [{ json: { uploadUrl, publishId, fileSize }, binary }];"
-      },
-      "id": "tiktok-prepare",
-      "name": "Prepare TikTok Upload Data",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        1344,
-        0
-      ]
-    },
-    {
-      "parameters": {
-        "method": "PUT",
-        "url": "={{ $json.uploadUrl }}",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "Content-Type",
-              "value": "video/mp4"
-            },
-            {
-              "name": "Content-Range",
-              "value": "=bytes 0-{{ $json.fileSize - 1 }}/{{ $json.fileSize }}"
-            }
-          ]
-        },
-        "sendBody": true,
-        "contentType": "binaryData",
-        "inputDataFieldName": "data",
-        "options": {}
-      },
-      "id": "tiktok-upload",
-      "name": "Upload Video to TikTok",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [
-        1568,
-        0
-      ],
-      "onError": "continueErrorOutput"
     }
   ],
   "pinData": {},
@@ -498,17 +427,6 @@
         ]
       ]
     },
-    "Find Downloaded File": {
-      "main": [
-        [
-          {
-            "node": "Read Video File",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Read Video File": {
       "main": [
         [
@@ -524,21 +442,14 @@
       "main": [
         [
           {
-            "node": "Prepare YouTube Upload Data",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Mark Error",
+            "node": "Prepare Upload Data",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Prepare YouTube Upload Data": {
+    "Prepare Upload Data": {
       "main": [
         [
           {
@@ -553,61 +464,18 @@
       "main": [
         [
           {
-            "node": "Initiate TikTok Upload",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Mark Error",
+            "node": "Delete Video File",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Initiate TikTok Upload": {
-      "main": [
-        [
-          {
-            "node": "Prepare TikTok Upload Data",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Mark Error",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Prepare TikTok Upload Data": {
-      "main": [
-        [
-          {
-            "node": "Upload Video to TikTok",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Upload Video to TikTok": {
+    "Delete Video File": {
       "main": [
         [
           {
             "node": "Mark Downloaded",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Mark Error",
             "type": "main",
             "index": 0
           }
@@ -642,18 +510,29 @@
           }
         ]
       ]
+    },
+    "Find Downloaded File": {
+      "main": [
+        [
+          {
+            "node": "Read Video File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
-  "active": false,
+  "active": true,
   "settings": {
     "executionOrder": "v1",
     "binaryMode": "separate"
   },
-  "versionId": "b0dc237d-e65a-42c4-8bf8-7a7ad7560401",
+  "versionId": "6057e713-4490-4669-a1b0-c0a4fc51d6ca",
   "meta": {
     "templateCredsSetupCompleted": true,
-    "instanceId": "45251748fab1da9e6b0d4fbf7a052ce6c2f2d0ec659d855cc85232a3f4151a16"
+    "instanceId": "535565a54fde5d99ed0ee498034facc11eb929bfafc58ecafa62cfaee3cfc30f"
   },
-  "id": "lOF7ILbnsQ7p7lK3",
+  "id": "bw1kLmg7XKl2CEMq",
   "tags": []
 }
