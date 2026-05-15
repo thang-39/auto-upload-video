@@ -1,0 +1,720 @@
+{
+  "name": "Notion → Download Facebook Video (Parallel YT & TikTok)",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 20 * * *"
+            }
+          ]
+        }
+      },
+      "id": "94c0a5cf-cdc1-457e-9896-03accd741b39",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -1344,
+        224
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "operation": "getAll",
+        "databaseId": {
+          "__rl": true,
+          "value": "adf94e9d3b9b42728f114fb1ab554ab5",
+          "mode": "id"
+        },
+        "limit": 1,
+        "filterType": "manual",
+        "filters": {
+          "conditions": [
+            {
+              "key": "YT_Status|status",
+              "condition": "equals",
+              "statusValue": "Ready"
+            },
+            {
+              "key": "Tiktok_Status|status",
+              "condition": "equals",
+              "statusValue": "Ready"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "fd092439-8491-44ba-875a-41a6a27acb30",
+      "name": "Get Next Ready Video",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        -1104,
+        224
+      ],
+      "credentials": {
+        "notionApi": {
+          "id": "1x21QAoszbkHoHWL",
+          "name": "Notion account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "cond-has-items",
+              "leftValue": "={{ $items().length }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "a73ff16d-4311-4f78-a202-b077d1599fa0",
+      "name": "Has Videos?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        -880,
+        224
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "operation": "update",
+        "pageId": {
+          "__rl": true,
+          "value": "={{ $json.id }}",
+          "mode": "id"
+        },
+        "propertiesUi": {
+          "propertyValues": [
+            {
+              "key": "YT_Status|status",
+              "statusValue": "Downloading"
+            },
+            {
+              "key": "Tiktok_Status|status",
+              "statusValue": "Downloading"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "4e2b66d3-76d1-497c-8b64-f90b04fadec7",
+      "name": "Mark Downloading",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        -656,
+        112
+      ],
+      "credentials": {
+        "notionApi": {
+          "id": "1x21QAoszbkHoHWL",
+          "name": "Notion account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "command": "=yt-dlp --no-playlist --merge-output-format mp4 -o \"/home/node/downloads/{{ $('Get Next Ready Video').item.json.id }}_{{ $('Get Next Ready Video').item.json.property_title }}.%(ext)s\" \"{{ $('Get Next Ready Video').item.json.property_fb_link }}\""
+      },
+      "id": "d09d31c9-5d8b-48a7-a249-5ca4baee3f7c",
+      "name": "Download Video",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        -448,
+        112
+      ],
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "cond-exit-code",
+              "leftValue": "={{ $json.exitCode }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "83ddc9d4-1185-451a-b63f-94b6c6134706",
+      "name": "Download OK?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        -224,
+        112
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "operation": "update",
+        "pageId": {
+          "__rl": true,
+          "value": "={{ $('Get Next Ready Video').item.json.id }}",
+          "mode": "id"
+        },
+        "propertiesUi": {
+          "propertyValues": [
+            {
+              "key": "YT_Status|status",
+              "statusValue": "Completed"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "e103dd93-7029-4c10-9165-f62202f8d8e9",
+      "name": "Mark YT Completed",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        1120,
+        -100
+      ],
+      "credentials": {
+        "notionApi": {
+          "id": "1x21QAoszbkHoHWL",
+          "name": "Notion account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "command": "=rm \"{{ $('Find Downloaded File').item.json.stdout.trim() }}\""
+      },
+      "id": "e4b6d3a1-7c9e-4b8a-9d2f-1a2b3c4d5e6f",
+      "name": "Delete Video File",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        1568,
+        50
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "wait"
+      },
+      "id": "5f3a2b1c-d4e5-4f6a-b7c8-d9e0f1a2b3c4",
+      "name": "Merge",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 2.1,
+      "position": [
+        1344,
+        50
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://open.tiktokapis.com/v2/post/publish/video/init/",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "tiktokOAuth2Api",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json; charset=UTF-8"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ post_info: { title: ($('Get Next Ready Video').item.json.property_title || 'Video Upload'), privacy_level: 'PUBLIC_TO_EVERYONE' }, source_info: { source: 'FILE_UPLOAD', video_size: $('Read Video File').item.binary.data.fileSize, chunk_size: $('Read Video File').item.binary.data.fileSize, total_chunk_count: 1 } }) }}",
+        "options": {}
+      },
+      "id": "a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d",
+      "name": "TikTok Init Upload",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        448,
+        200
+      ],
+      "credentials": {
+        "tiktokOAuth2Api": {
+          "id": "new-tiktok-credential-id",
+          "name": "TikTok account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "PUT",
+        "url": "={{ $json.data.upload_url }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "video/mp4"
+            },
+            {
+              "name": "Content-Range",
+              "value": "={{ 'bytes 0-' + ($('Read Video File').item.binary.data.fileSize - 1) + '/' + $('Read Video File').item.binary.data.fileSize }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "binaryData",
+        "inputDataFieldName": "data",
+        "options": {}
+      },
+      "id": "b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e",
+      "name": "TikTok Upload Data",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        672,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "operation": "update",
+        "pageId": {
+          "__rl": true,
+          "value": "={{ $('Get Next Ready Video').item.json.id }}",
+          "mode": "id"
+        },
+        "propertiesUi": {
+          "propertyValues": [
+            {
+              "key": "Tiktok_Status|status",
+              "statusValue": "Completed"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "c3d4e5f6-a7b8-4c9d-0e1f-2a3b4c5d6e7f",
+      "name": "Mark TikTok Completed",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        896,
+        200
+      ],
+      "credentials": {
+        "notionApi": {
+          "id": "1x21QAoszbkHoHWL",
+          "name": "Notion account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "operation": "update",
+        "pageId": {
+          "__rl": true,
+          "value": "={{ $('Get Next Ready Video').item.json.id }}",
+          "mode": "id"
+        },
+        "propertiesUi": {
+          "propertyValues": [
+            {
+              "key": "YT_Status|status",
+              "statusValue": "Error"
+            },
+            {
+              "key": "Tiktok_Status|status",
+              "statusValue": "Error"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "465856d9-de09-4567-a815-9f9eb1e275cf",
+      "name": "Mark Error",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        896,
+        224
+      ],
+      "credentials": {
+        "notionApi": {
+          "id": "1x21QAoszbkHoHWL",
+          "name": "Notion account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "command": "=ls -t /home/node/downloads/{{ $('Get Next Ready Video').item.json.id }}_*.mp4 2>/dev/null | head -1"
+      },
+      "id": "76bb9acc-834e-454e-8b58-a87ab626eb91",
+      "name": "Find Downloaded File",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "fileSelector": "={{ $json.stdout.trim() }}",
+        "options": {}
+      },
+      "id": "7f9c7ec6-95f2-4b01-92df-e943462ca7ee",
+      "name": "Read Video File",
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        224,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://www.googleapis.com/upload/youtube/v3/videos?uploadType=resumable&part=snippet,status",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "youTubeOAuth2Api",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json; charset=UTF-8"
+            },
+            {
+              "name": "X-Upload-Content-Type",
+              "value": "video/mp4"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ snippet: { title: ($('Get Next Ready Video').item.json.property_title || 'Video Upload').replace(/^\\d+\\.\\s*/, ''), description: ($('Get Next Ready Video').item.json.property_title || ''), categoryId: '22' }, status: { privacyStatus: 'public' } }) }}",
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true
+            }
+          }
+        }
+      },
+      "id": "cf23bcdf-3739-4cc4-b0b9-4dd25dad35da",
+      "name": "Initiate YouTube Upload",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        448,
+        0
+      ],
+      "credentials": {
+        "youTubeOAuth2Api": {
+          "id": "qsMDi7cfEntWrGk1",
+          "name": "YouTube account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Re-attach the binary video data lost after the Initiate step\nconst uploadUrl = $input.item.json.headers.location;\nconst binary = $('Read Video File').item.binary;\n\nreturn [{ json: { uploadUrl }, binary }];"
+      },
+      "id": "7f7a69e9-2694-49e1-9c9c-2159804399f3",
+      "name": "Prepare Upload Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        672,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "PUT",
+        "url": "={{ $json.uploadUrl }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "youTubeOAuth2Api",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "video/mp4"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "binaryData",
+        "inputDataFieldName": "data",
+        "options": {}
+      },
+      "id": "89f970ba-c114-4c30-81b5-631341be6286",
+      "name": "Upload Video to YouTube",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        896,
+        0
+      ],
+      "credentials": {
+        "youTubeOAuth2Api": {
+          "id": "qsMDi7cfEntWrGk1",
+          "name": "YouTube account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get Next Ready Video",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Next Ready Video": {
+      "main": [
+        [
+          {
+            "node": "Has Videos?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Has Videos?": {
+      "main": [
+        [
+          {
+            "node": "Mark Downloading",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download OK?": {
+      "main": [
+        [
+          {
+            "node": "Find Downloaded File",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Mark Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Video File": {
+      "main": [
+        [
+          {
+            "node": "Initiate YouTube Upload",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "TikTok Init Upload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Initiate YouTube Upload": {
+      "main": [
+        [
+          {
+            "node": "Prepare Upload Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Upload Data": {
+      "main": [
+        [
+          {
+            "node": "Upload Video to YouTube",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload Video to YouTube": {
+      "main": [
+        [
+          {
+            "node": "Mark YT Completed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mark YT Completed": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "TikTok Init Upload": {
+      "main": [
+        [
+          {
+            "node": "TikTok Upload Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "TikTok Upload Data": {
+      "main": [
+        [
+          {
+            "node": "Mark TikTok Completed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mark TikTok Completed": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Delete Video File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Delete Video File": {
+      "main": [
+        []
+      ]
+    },
+    "Mark Downloading": {
+      "main": [
+        [
+          {
+            "node": "Download Video",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download Video": {
+      "main": [
+        [
+          {
+            "node": "Download OK?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Download OK?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find Downloaded File": {
+      "main": [
+        [
+          {
+            "node": "Read Video File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "6057e713-4490-4669-a1b0-c0a4fc51d6ca",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "535565a54fde5d99ed0ee498034facc11eb929bfafc58ecafa62cfaee3cfc30f"
+  },
+  "id": "bw1kLmg7XKl2CEMq",
+  "tags": []
+}
