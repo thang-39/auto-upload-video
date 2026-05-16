@@ -1,0 +1,136 @@
+{
+  "name": "TikTok Manual Auth (Token Generator) - Fixed",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "tiktok-callback",
+        "options": {}
+      },
+      "id": "e416610c-db4e-4de3-b733-10f0b5b1d3f1",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "1a7a206c-c632-4969-a00e-34fe9ad3124f"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://open.tiktokapis.com/v2/oauth/token/",
+        "sendBody": true,
+        "contentType": "form-urlencoded",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "client_key",
+              "value": "={{ $env.TIKTOK_CLIENT_KEY }}"
+            },
+            {
+              "name": "client_secret",
+              "value": "={{ $env.TIKTOK_CLIENT_SECRET }}"
+            },
+            {
+              "name": "code",
+              "value": "={{ $json.query.code }}"
+            },
+            {
+              "name": "grant_type",
+              "value": "authorization_code"
+            },
+            {
+              "name": "redirect_uri",
+              "value": "https://k8s-worker1.mining-theropod.ts.net:5678/webhook-test/tiktok-callback"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "9166f4f6-0dee-411e-95ec-fab98d9a22a3",
+      "name": "Exchange Token",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        200,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "jsonToBinary",
+        "convertAllData": true,
+        "destinationDataPropertyName": "data",
+        "options": {
+          "fileName": "tiktok_token.json"
+        }
+      },
+      "id": "move-binary-node",
+      "name": "Convert to File",
+      "type": "n8n-nodes-base.moveBinaryData",
+      "typeVersion": 1,
+      "position": [
+        400,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "/home/node/downloads/tiktok_token.json",
+        "dataPropertyName": "data",
+        "options": {}
+      },
+      "id": "2d6dcae3-d3f4-4a5a-a3e9-153f08b2306c",
+      "name": "Save Token to File",
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        600,
+        0
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Exchange Token",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Exchange Token": {
+      "main": [
+        [
+          {
+            "node": "Convert to File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert to File": {
+      "main": [
+        [
+          {
+            "node": "Save Token to File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  }
+}
